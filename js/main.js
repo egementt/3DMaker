@@ -247,12 +247,52 @@ function newScene() {
   state = { nextId: 1, env: { ...state.env }, objects: [] }; seq = {}; selectedId = null; rebuildAll(); commit();
 }
 
+// ================= templates =================
+function addMany(list) {
+  list.forEach(d => { state.objects.push(d); build(d); });
+  select(list[list.length - 1].id, true); commit();
+}
+function part(prim, name, y, geo, mat, x = 0) {
+  const d = newMesh(prim); d.name = uniqueName(name); d.pos = [x, y, 0];
+  Object.assign(d.geo, geo); Object.assign(d.mat, mat); return d;
+}
+/** Rifle cartridge built from 5 meshes (casing, rim, primer, bullet, tip). x = horizontal offset. */
+function ammoRound(x) {
+  const brass = { color: '#d4a63c', metalness: 0.95, roughness: 0.28 };
+  const copper = { color: '#b96a3a', metalness: 0.9, roughness: 0.32 };
+  return [
+    part('cylinder', 'Ammo Casing', 0.28, { top: 0.1, bottom: 0.115, height: 0.5, radial: 32 }, brass, x),
+    part('cylinder', 'Ammo Rim', 0.015, { top: 0.13, bottom: 0.13, height: 0.03, radial: 32 }, brass, x),
+    part('cylinder', 'Ammo Primer', -0.0005, { top: 0.045, bottom: 0.045, height: 0.004, radial: 24 }, { color: '#9aa0a8', metalness: 1, roughness: 0.4 }, x),
+    part('cylinder', 'Ammo Bullet', 0.59, { top: 0.09, bottom: 0.09, height: 0.12, radial: 32 }, copper, x),
+    part('cone', 'Ammo Tip', 0.75, { radius: 0.09, height: 0.2, radial: 32 }, copper, x),
+  ];
+}
+function fx(name, preset, x, y, z, over) {
+  const d = newEmitter(preset); d.name = uniqueName(name); d.pos = [x, y, z];
+  Object.assign(d.emitter, { preset: 'custom', rate: 0, loop: true, duration: 3 }, over); return d;
+}
+/** Layered explosion: flash, fireball, sparks, smoke, debris (all loop every 3s). */
+function explosionFx(x, y, z) {
+  return [
+    fx('Boom Flash', 'explosion', x, y, z, { shape: 'sphere', radius: 0.15, burst: 25, speed: 0.5, drag: 3, life: 0.22, lifeVar: 0.2, size0: 2.4, size1: 0.6, color0: '#ffffff', color1: '#ffd27a', max: 100 }),
+    fx('Boom Fireball', 'explosion', x, y, z, { burst: 180, speed: 5, speedVar: 0.6, drag: 2.4, gravity: 1.2, life: 1.1, size0: 1.0, size1: 0.2, color0: '#ffc24a', color1: '#b32a00', turbulence: 1, max: 400 }),
+    fx('Boom Sparks', 'sparks', x, y, z, { shape: 'sphere', radius: 0.1, spread: 180, burst: 90, speed: 8, speedVar: 0.7, gravity: -9, drag: 0.4, life: 1.1, size0: 0.12, size1: 0.02, max: 300 }),
+    fx('Boom Smoke', 'smoke', x, y, z, { shape: 'sphere', radius: 0.3, spread: 180, burst: 45, speed: 1.6, drag: 1.2, gravity: 0.8, life: 3, lifeVar: 0.3, size0: 0.9, size1: 2.8, alpha0: 0.55, max: 200 }),
+    fx('Boom Debris', 'sparks', x, y, z, { shape: 'sphere', radius: 0.1, spread: 120, burst: 35, speed: 6, speedVar: 0.6, gravity: -12, drag: 0.1, life: 1.6, size0: 0.07, size1: 0.07, color0: '#3a2a22', color1: '#1a1410', alpha0: 1, alpha1: 1, additive: false, texture: 'circle', max: 100 }),
+  ];
+}
+
 // ================= left panel =================
 function paletteButton(parent, label, fn) {
   const b = document.createElement('button'); b.textContent = label; b.onclick = fn; parent.appendChild(b);
 }
 Object.entries(PRIMS).forEach(([k, p]) => paletteButton($('#add-mesh'), `${p.icon} ${p.label}`, () => add(newMesh(k))));
 Object.keys(PRESETS).forEach(k => paletteButton($('#add-vfx'), '✦ ' + k[0].toUpperCase() + k.slice(1), () => add(newEmitter(k))));
+const tpl = (label, fn) => paletteButton($('#add-tpl'), label, () => addMany(fn()));
+tpl('🔫 Ammo round', () => ammoRound(0));
+tpl('💥 Explosion', () => explosionFx(0, 0.4, 0));
+tpl('Ammo + blast', () => [...ammoRound(-1), ...explosionFx(1, 0.4, 0)]);
 paletteButton($('#add-light'), '💡 Point', () => add(newLight('point')));
 paletteButton($('#add-light'), '☀ Sun', () => add(newLight('directional')));
 

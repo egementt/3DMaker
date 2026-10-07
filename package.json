@@ -1,0 +1,7 @@
+{
+  "name": "3dmaker",
+  "version": "0.1.0",
+  "description": "Browser-based 3D asset & VFX creator (three.js)",
+  "private": true,
+  "scripts": { "start": "python3 -m http.server 8080" }
+}

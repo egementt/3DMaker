@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3DMaker</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+</head>
+<body>
+<header id="top">
+  <div class="brand">⬢ 3DMaker</div>
+  <nav>
+    <button id="b-new">New</button>
+    <button id="b-open">Open</button>
+    <button id="b-save">Save</button>
+    <div class="menu"><button>Export ▾</button>
+      <div class="drop">
+        <button id="x-glb">glTF binary (.glb)</button>
+        <button id="x-obj">Wavefront (.obj)</button>
+        <button id="x-vfx">VFX data (.json)</button>
+        <button id="x-png">Screenshot (.png)</button>
+      </div></div>
+    <span class="sep"></span>
+    <button id="b-undo" title="Ctrl+Z">↶ Undo</button>
+    <button id="b-redo" title="Ctrl+Shift+Z">↷ Redo</button>
+    <button id="b-dup" title="Shift+D">Duplicate</button>
+    <button id="b-del" title="Delete">Delete</button>
+  </nav>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+</header>
+<main>
+  <aside id="left">
+    <section><h3>Add mesh</h3><div id="add-mesh" class="grid"></div></section>
+    <section><h3>Add VFX</h3><div id="add-vfx" class="grid"></div></section>
+    <section><h3>Add light</h3><div id="add-light" class="grid"></div></section>
+    <section class="grow"><h3>Outliner</h3><ul id="outliner"></ul></section>
+  </aside>
+  <section id="viewport">
+    <div id="toolbar">
+      <button data-mode="translate" class="on" title="Move (G)">Move</button>
+      <button data-mode="rotate" title="Rotate (R)">Rotate</button>
+      <button data-mode="scale" title="Scale (S)">Scale</button>
+      <span class="sep"></span>
+      <button id="t-snap" title="Snap">Snap</button>
+      <button id="t-wire" title="Wireframe">Wire</button>
+      <button id="t-grid" class="on" title="Grid">Grid</button>
+      <span class="sep"></span>
+      <button id="t-play" class="on" title="Space">⏸ Pause</button>
+      <button id="t-restart" title="Restart VFX (Shift+R)">⟲ Restart</button>
+      <span id="stats"></span>
+    </div>
+    <div id="canvas-wrap"></div>
+    <div id="hint">LMB select · drag to orbit · RMB pan · wheel zoom · G/R/S gizmo · F focus · Del delete</div>
+  </section>
+  <aside id="right"><div id="props"></div></aside>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

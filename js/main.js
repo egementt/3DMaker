@@ -268,18 +268,69 @@ function ammoRound(x) {
     part('cone', 'Ammo Tip', 0.75, { radius: 0.09, height: 0.2, radial: 32 }, copper, x),
   ];
 }
+/** Artillery shell (155mm-style): olive body, ogive, fuze, driving band, boat-tail, yellow marking band. */
+function artilleryShell(x) {
+  const olive = { color: '#5b6240', metalness: 0.5, roughness: 0.6 };
+  const brass = { color: '#d4a63c', metalness: 0.95, roughness: 0.3 };
+  return [
+    part('cylinder', 'Shell Body', 0.52, { top: 0.2, bottom: 0.2, height: 0.78, radial: 40 }, olive, x),
+    part('cylinder', 'Shell Boat-tail', 0.07, { top: 0.2, bottom: 0.14, height: 0.14, radial: 40 }, olive, x),
+    part('cone', 'Shell Ogive', 1.17, { radius: 0.2, height: 0.5, radial: 40, hseg: 8 }, olive, x),
+    part('cylinder', 'Shell Fuze', 1.46, { top: 0.04, bottom: 0.06, height: 0.14, radial: 24 }, brass, x),
+    part('cylinder', 'Shell Driving Band', 0.24, { top: 0.208, bottom: 0.208, height: 0.07, radial: 40 }, { color: '#b96a3a', metalness: 0.9, roughness: 0.35 }, x),
+    part('cylinder', 'Shell Marking Band', 0.89, { top: 0.203, bottom: 0.203, height: 0.05, radial: 40 }, { color: '#e0b92e', metalness: 0.1, roughness: 0.7 }, x),
+  ];
+}
+function fins(name, y, n, size, mat, x) {
+  return Array.from({ length: n }, (_, i) => {
+    const d = part('box', name, y, { width: size[0], height: size[1], depth: 0.012, seg: 1 }, mat, x);
+    d.rot = [0, (180 / n) * i, 0]; return d;
+  });
+}
+/** Tank round, propellant case: shared base of the tank rounds. */
+function tankCase(x) {
+  const brass = { color: '#d4a63c', metalness: 0.95, roughness: 0.3 };
+  return [
+    part('cylinder', 'Tank Case', 0.35, { top: 0.17, bottom: 0.17, height: 0.7, radial: 40 }, { color: '#8b6f3e', metalness: 0.6, roughness: 0.5 }, x),
+    part('cylinder', 'Tank Case Base', 0.025, { top: 0.185, bottom: 0.185, height: 0.05, radial: 40 }, brass, x),
+  ];
+}
+/** 120mm APFSDS: long tungsten dart in a sabot with stabilising fins. */
+function tankApfsds(x) {
+  const dart = { color: '#3b3f45', metalness: 0.9, roughness: 0.35 };
+  return [
+    ...tankCase(x),
+    part('cylinder', 'APFSDS Sabot', 1.0, { top: 0.12, bottom: 0.14, height: 0.6, radial: 32 }, { color: '#a8adb5', metalness: 0.7, roughness: 0.45 }, x),
+    part('cylinder', 'APFSDS Rod', 1.45, { top: 0.045, bottom: 0.045, height: 1.5, radial: 24 }, dart, x),
+    part('cone', 'APFSDS Tip', 2.3, { radius: 0.045, height: 0.2, radial: 24 }, dart, x),
+    ...fins('APFSDS Fin', 0.82, 3, [0.3, 0.26], { color: '#6b7078', metalness: 0.8, roughness: 0.4 }, x),
+  ];
+}
+/** 120mm HEAT-MP: shaped-charge warhead with a probe and a red band. */
+function tankHeat(x) {
+  const olive = { color: '#5b6240', metalness: 0.5, roughness: 0.6 };
+  return [
+    ...tankCase(x),
+    part('cylinder', 'HEAT Body', 0.95, { top: 0.12, bottom: 0.13, height: 0.5, radial: 32 }, olive, x),
+    part('cone', 'HEAT Nose', 1.43, { radius: 0.12, height: 0.46, radial: 32 }, olive, x),
+    part('cylinder', 'HEAT Probe', 1.78, { top: 0.008, bottom: 0.016, height: 0.26, radial: 12 }, { color: '#9aa0a8', metalness: 1, roughness: 0.35 }, x),
+    part('cylinder', 'HEAT Band', 1.1, { top: 0.126, bottom: 0.126, height: 0.05, radial: 32 }, { color: '#b3302a', metalness: 0.1, roughness: 0.7 }, x),
+    ...fins('HEAT Fin', 0.82, 3, [0.24, 0.2], { color: '#6b7078', metalness: 0.8, roughness: 0.4 }, x),
+  ];
+}
 function fx(name, preset, x, y, z, over) {
   const d = newEmitter(preset); d.name = uniqueName(name); d.pos = [x, y, z];
   Object.assign(d.emitter, { preset: 'custom', rate: 0, loop: true, duration: 3 }, over); return d;
 }
 /** Layered explosion: flash, fireball, sparks, smoke, debris (all loop every 3s). */
-function explosionFx(x, y, z) {
+function explosionFx(x, y, z, k = 1) {
+  const big = o => ({ ...o, radius: o.radius * k, size0: o.size0 * k, size1: o.size1 * k, speed: o.speed * Math.sqrt(k), burst: Math.round(o.burst * k) });
   return [
-    fx('Boom Flash', 'explosion', x, y, z, { shape: 'sphere', radius: 0.15, burst: 25, speed: 0.5, drag: 3, life: 0.22, lifeVar: 0.2, size0: 2.4, size1: 0.6, color0: '#ffffff', color1: '#ffd27a', max: 100 }),
-    fx('Boom Fireball', 'explosion', x, y, z, { burst: 180, speed: 5, speedVar: 0.6, drag: 2.4, gravity: 1.2, life: 1.1, size0: 1.0, size1: 0.2, color0: '#ffc24a', color1: '#b32a00', turbulence: 1, max: 400 }),
-    fx('Boom Sparks', 'sparks', x, y, z, { shape: 'sphere', radius: 0.1, spread: 180, burst: 90, speed: 8, speedVar: 0.7, gravity: -9, drag: 0.4, life: 1.1, size0: 0.12, size1: 0.02, max: 300 }),
-    fx('Boom Smoke', 'smoke', x, y, z, { shape: 'sphere', radius: 0.3, spread: 180, burst: 45, speed: 1.6, drag: 1.2, gravity: 0.8, life: 3, lifeVar: 0.3, size0: 0.9, size1: 2.8, alpha0: 0.55, max: 200 }),
-    fx('Boom Debris', 'sparks', x, y, z, { shape: 'sphere', radius: 0.1, spread: 120, burst: 35, speed: 6, speedVar: 0.6, gravity: -12, drag: 0.1, life: 1.6, size0: 0.07, size1: 0.07, color0: '#3a2a22', color1: '#1a1410', alpha0: 1, alpha1: 1, additive: false, texture: 'circle', max: 100 }),
+    fx('Boom Flash', 'explosion', x, y, z, big({ shape: 'sphere', radius: 0.15, burst: 25, speed: 0.5, drag: 3, life: 0.22, lifeVar: 0.2, size0: 2.4, size1: 0.6, color0: '#ffffff', color1: '#ffd27a', max: Math.ceil(100 * k) })),
+    fx('Boom Fireball', 'explosion', x, y, z, big({ burst: 180, speed: 5, speedVar: 0.6, drag: 2.4, gravity: 1.2, life: 1.1, size0: 1.0, size1: 0.2, color0: '#ffc24a', color1: '#b32a00', turbulence: 1, max: 400 })),
+    fx('Boom Sparks', 'sparks', x, y, z, big({ shape: 'sphere', radius: 0.1, spread: 180, burst: 90, speed: 8, speedVar: 0.7, gravity: -9, drag: 0.4, life: 1.1, size0: 0.12, size1: 0.02, max: 300 })),
+    fx('Boom Smoke', 'smoke', x, y, z, big({ shape: 'sphere', radius: 0.3, spread: 180, burst: 45, speed: 1.6, drag: 1.2, gravity: 0.8, life: 3, lifeVar: 0.3, size0: 0.9, size1: 2.8, alpha0: 0.55, max: 200 })),
+    fx('Boom Debris', 'sparks', x, y, z, big({ shape: 'sphere', radius: 0.1, spread: 120, burst: 35, speed: 6, speedVar: 0.6, gravity: -12, drag: 0.1, life: 1.6, size0: 0.07, size1: 0.07, color0: '#3a2a22', color1: '#1a1410', alpha0: 1, alpha1: 1, additive: false, texture: 'circle', max: Math.ceil(100 * k) })),
   ];
 }
 
@@ -292,6 +343,10 @@ Object.keys(PRESETS).forEach(k => paletteButton($('#add-vfx'), '✦ ' + k[0].toU
 const tpl = (label, fn) => paletteButton($('#add-tpl'), label, () => addMany(fn()));
 tpl('🔫 Ammo round', () => ammoRound(0));
 tpl('💥 Explosion', () => explosionFx(0, 0.4, 0));
+tpl('🛡 Tank APFSDS', () => tankApfsds(0));
+tpl('🛡 Tank HEAT', () => tankHeat(0));
+tpl('💣 Artillery 155', () => artilleryShell(0));
+tpl('Artillery + blast', () => [...artilleryShell(-1.5), ...explosionFx(1.5, 0.5, 0, 2)]);
 tpl('Ammo + blast', () => [...ammoRound(-1), ...explosionFx(1, 0.4, 0)]);
 paletteButton($('#add-light'), '💡 Point', () => add(newLight('point')));
 paletteButton($('#add-light'), '☀ Sun', () => add(newLight('directional')));

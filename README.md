@@ -12,7 +12,7 @@ npm start        # then open http://localhost:8080
 - **Meshes**: cube, sphere, cylinder, cone, torus, torus-knot, plane, gem, capsule, each with live parametric geometry
 - **Modifiers**: noise displacement, twist, taper; **PBR materials** (color, metal, rough, emissive glow, opacity, wire, flat)
 - **VFX particle emitters**: Fire, Smoke, Sparks, Explosion, Magic, Heal, Snow presets, or fully custom (shape, cone, gravity, drag, turbulence, size/colour/alpha over life, additive glow, sprites, burst/loop)
-- **Templates**: rifle ammo round (5 meshes) and a 5-layer explosion (flash, fireball, sparks, smoke, debris)
+- **Templates**: rifle round, tank rounds (APFSDS, HEAT), 155mm artillery shell and a 5-layer explosion (flash, fireball, sparks, smoke, debris)
 - **Lights** (point/sun with shadows), move/rotate/scale gizmo, snapping, outliner, preview spin/bob animation
 - **Undo/redo**, autosave, project save/open (`.3dmaker.json`)
 - **Export**: glTF `.glb`, `.obj`, VFX data `.json`, PNG screenshot
